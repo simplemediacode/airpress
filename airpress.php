@@ -3,14 +3,14 @@
 Plugin Name: Airpress
 Plugin URI: http://chetmac.com/airpress
 Description: Extend Wordpress Posts, Pages, and Custom Fields with data from remote Airtable records.
-Version: 1.1.55
+Version: 1.1.62
 Author: Chester McLaughlin
 Author URI: http://chetmac.com
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
 
-$airpress_version = "1.1.55";
+$airpress_version = "1.1.62";
 
 if ( ! defined( 'WPINC' ) ) {
 	 die;
@@ -80,6 +80,20 @@ if (is_admin()){
 	require_once("lib/chetmac/AirpressAdmin.php");	
 	require_once("lib/chetmac/AirpressVirtualPostsAdmin.php");
 	require_once("lib/chetmac/AirpressVirtualFieldsAdmin.php");
+
+	if ( is_plugin_active("elementor/elementor.php") ){
+		// require_once("lib/chetmac/AirpressElementorWidget.php");
+
+		add_action( 'elementor/widgets/widgets_registered', 'register_airpress_elementor' );
+
+		function register_airpress_elementor(){
+				// Include Widget files
+			require_once( 'lib/chetmac/AirpressElementorWidget.php' );
+
+			// Register widget
+			\Elementor\Plugin::instance()->widgets_manager->register_widget_type( new \AirpressElementorWidget() );
+		}
+	}
 }
 
 $airpress = new Airpress();
@@ -101,6 +115,30 @@ if (!isset($parsedown)){
 // add ajax handle which will act as trigger
 add_action( 'wp_ajax_nopriv_airpress_deferred', 'airpress_execute_deferred_queries' );
 add_action( 'wp_ajax_airpress_deferred', 'airpress_execute_deferred_queries' );
+
+register_activation_hook( __FILE__, 'airpress_activation' );
+register_deactivation_hook( __FILE__, 'airpress_deactivation' );
+
+if ( ! function_exists("airpress_activation") ){
+
+	function airpress_activation(){
+
+		flush_rewrite_rules();
+
+	}
+
+}
+
+if ( ! function_exists("airpress_deactivation") ){
+
+	function airpress_deactivation(){
+
+		flush_rewrite_rules();
+
+	}
+
+}
+
 
 function airpress_get_current_record(){
 	global $airpress, $post;
@@ -256,7 +294,7 @@ function airpress_getArrayValues($array,$keys){
 	return $array;
 }
 
-function airpress_parse_template($template, $record, $replacementFields=null){
+function airpress_parse_template($template, $record, $replacementFields=null, $trim=true){
 
 	if ( is_null($replacementFields) ){
 	    preg_match_all("/{{([^}]*)}}/", $template, $matches);
@@ -267,6 +305,13 @@ function airpress_parse_template($template, $record, $replacementFields=null){
 	foreach($replacementFields as $replacementField){
 
 		$keys = explode("|", $replacementField);
+		
+		if ( ! empty($keys) && $trim ){
+			$keys = array_map(function($field){
+				return trim($field);
+			}, $keys);
+		}
+
 		$field = array_shift($keys);
 		$replacementValue = "";
 		
@@ -276,41 +321,41 @@ function airpress_parse_template($template, $record, $replacementFields=null){
 			} else {
 				airpress_debug(0,"Attempting to populate field $field on a non-populated record",$keys);
 			}
-		} else if ( ! is_airpress_empty( $record[$field] ) ){ 
-			// this means it IS an AirpressCollection with records
+		} else if ( isset($record[$field]) ){
 
-			if (empty($keys)){
-				// this shouldn't really happen because we can't output a collection
-				// we should be looking INSIDE the collection, but can't since keys is empty
-			} else {
-				$replacementValue = implode(", ", $record[$field]->getFieldValues($keys) );
-			}
+			if ( ! is_airpress_empty( $record[$field] ) ){ 
+				// this means it IS an AirpressCollection with records
 
-		// This field is an array
-		} else if (is_array($record[$field]) ){
-
-			if (empty($keys)){
-				$replacementValue = implode(", ",$record[$field]);
-			} else {
-				$array = $record[$field];
-				while (!empty($keys)){
-					$key = array_shift($keys);
-					$array = $array[$key];
-				}
-				if (is_array($array)){
-					$replacementValue = implode(", ",$array);
+				if (empty($keys)){
+					// this shouldn't really happen because we can't output a collection
+					// we should be looking INSIDE the collection, but can't since keys is empty
 				} else {
-					$replacementValue = $array;
+					$replacementValue = implode(", ", $record[$field]->getFieldValues($keys) );
 				}
+
+			// This field is an array
+			} else if (is_array($record[$field]) ){
+
+				if (empty($keys)){
+					$replacementValue = implode(", ",$record[$field]);
+				} else {
+					$array = $record[$field];
+					while (!empty($keys)){
+						$key = array_shift($keys);
+						$array = $array[$key];
+					}
+					if (is_array($array)){
+						$replacementValue = implode(", ",$array);
+					} else {
+						$replacementValue = $array;
+					}
+				}
+
+			} else if (isset($record[$field])){
+
+				$replacementValue = $record[$field];
+
 			}
-
-		} else if (isset($record[$field])){
-
-			$replacementValue = $record[$field];
-
-		} else {
-
-			$replacementValue = "";
 
 		}
 
@@ -364,6 +409,8 @@ function airpress_debug($cx=0,$message=null,$object=null){
 		$config = $cx;
 	}
 	
+	$object_string = "";
+
 	if ( isset($config["debug"]) ){
 
 		if ( $config["debug"] == 1 || $config["debug"] == 2 ){
@@ -449,9 +496,3 @@ function is_airpress_compatible_page_builder(){
 	return false;
 
 }
-
-/*
-to do: Allow cacheImageFields via shortcodes
-*/
-
-?>

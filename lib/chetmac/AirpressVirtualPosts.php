@@ -9,6 +9,10 @@ class AirpressVirtualPosts {
 	function init(){
 		global $wp_rewrite;
 
+		// This is here because some plugins (like Gravity Forms) call flush_rewrite_rules
+		// on the front end. So unless I register these rules ALL the time, they may be "forgotten" by wordpress
+		add_action( 'init',		array($this,'airpress_vp_add_rules') );
+
 		add_action( 'parse_request',		array($this,'check_for_actual_page') );
 		add_action( 'template_redirect',	array($this,'check_for_virtual_page') );//, -10);
 
@@ -245,6 +249,10 @@ class AirpressVirtualPosts {
 
 	public function check_for_virtual_page(){
 		global $wp, $wp_query;
+
+		if (is_null($wp_query->post)){
+			return;
+		}
 		
 		// if request matched one of our VirtualPost redirect rules
 		if ($this->config){
@@ -270,8 +278,11 @@ class AirpressVirtualPosts {
 
 					$slug_field = $this->config["field"];
 					if (isset( $this->AirpressCollection[0][$slug_field] )){
-						airpress_debug("$slug_field exists so post_name is ".$this->AirpressCollection[0][$slug_field].".");
-						$wp_query->post->guid = $wp_query->post->post_name = $this->AirpressCollection[0][$slug_field];
+
+						$the_new_slug = implode("-", $this->AirpressCollection->getFieldValues($slug_field) );
+
+						airpress_debug("$slug_field exists so post_name is ".$the_new_slug.".");
+						$wp_query->post->guid = $wp_query->post->post_name = $the_new_slug;
 					} else if ( ! empty($slug_field) ) {
 
 						$post_name = $slug_field;
@@ -302,10 +313,14 @@ class AirpressVirtualPosts {
 					$title_field = (isset($this->config["field2"]))? $this->config["field2"] : false;
 					if ( $title_field ){
 						if ( isset( $this->AirpressCollection[0][$title_field] ) ){
-							airpress_debug("$title_field exists so post_title is ".$this->AirpressCollection[0][$title_field].".");
+
+							$the_new_title = implode(", ", $this->AirpressCollection->getFieldValues($title_field) );
+
+							airpress_debug("$title_field exists so post_title is ".$the_new_title.".");
 							add_filter("wpseo_og_og_title",[$this,"wpseo_title"]);
 							add_filter("wpseo_twitter_title",[$this,"wpseo_title"]);
-							$wp_query->post->post_title = $this->AirpressCollection[0][$title_field];
+							$wp_query->post->post_title = $the_new_title;
+
 						} else {
 
 							$post_title = $title_field;
@@ -395,7 +410,10 @@ class AirpressVirtualPosts {
 		if ($this->config){
 			$slug_field = $this->config["field"];
 			if (isset($this->AirpressCollection[0][$slug_field])){
-				$canonical_url = $_SERVER["HTTP_HOST"].dirname($_SERVER["REQUEST_URI"])."/".$this->AirpressCollection[0][$slug_field]."/";
+
+				$the_new_slug = implode("-", $this->AirpressCollection->getFieldValues($slug_field) );
+
+				$canonical_url = $_SERVER["HTTP_HOST"].dirname($_SERVER["REQUEST_URI"])."/".$the_new_slug."/";
 			}
 		}
 		
@@ -432,6 +450,39 @@ class AirpressVirtualPosts {
 		echo '<link rel="canonical" href="' . esc_url( $url ) . "\" />\n";
 	}
 
+	function airpress_vp_add_rules(){
+		global $wp_rewrite;
+
+		if ( ! isset($_SERVER["HTTP_HOST"]) ){
+			// happens on wpcli
+			return;
+		}
+
+		$configs = get_airpress_configs("airpress_vp");
+
+		foreach($configs as $config){
+			if (isset($config["pattern"]) && !empty($config["pattern"])){
+				$this->airpress_vp_add_rule($config);	
+			}
+
+			if ( isset($config["default"]) && ! empty($config["default"]) ){
+				$permalink = get_permalink($config["template"]);
+				$protocol = (empty($_SERVER["HTTPS"]))? "http" : "https";
+				$remove = $protocol."://".$_SERVER["HTTP_HOST"]."/";
+				$permalink = trim(str_replace($remove,"",$permalink),"/");
+				$pattern = "^".$permalink."/?";
+
+				add_rewrite_rule($pattern, "index.php?page_id=".$config["template"]."&default_vp=".rawurlencode($config["default"]) , 'top');
+				//die("Redirect: $pattern => ".$config["default"]);
+			}
+
+		}
+
+	}
+
+	function airpress_vp_add_rule($config){
+		return add_rewrite_rule($config["pattern"], 'index.php?page_id='.$config["template"] , 'top');
+	}
 
 }
 

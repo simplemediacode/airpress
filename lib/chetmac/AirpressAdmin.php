@@ -172,6 +172,8 @@ function airpress_admin_cx_tab($key,$config) {
 	$option_name = "airpress_cx".$key;
 	//$options = get_option( $option_name );
 
+	$uploads = wp_get_upload_dir();
+
 	$defaults = array(
 			"api_key" => "",
 			"app_id" => "",
@@ -180,7 +182,7 @@ function airpress_admin_cx_tab($key,$config) {
 			"api_url" => "https://api.airtable.com/v0/",
 			"fresh"  => "fresh",
 			"debug"	=> 0,
-			"log"	=> dirname(dirname(dirname(__FILE__)))."/airpress.log",
+			"log"	=> $uploads["basedir"] . "/airpress-" . uniqid() . ".log",
 			"log_max_size"	=> 3072
 		);
 

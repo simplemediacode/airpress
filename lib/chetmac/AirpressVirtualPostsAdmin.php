@@ -14,8 +14,6 @@ function airpress_vp_menu() {
 }
 add_action( 'admin_menu', 'airpress_vp_menu' );
 
-add_action( 'init', "airpress_vp_add_rules" );
-
 // airpress_debug(0,"These are all teh hooks",$wp_filter);
 
 //add_action('rewrite_rules_array','airpress_vp_update_permalinks');
@@ -236,35 +234,6 @@ function airpress_vp_validation($config){
 	}
 
 	return $config;
-}
-
-function airpress_vp_add_rule($config){
-	return add_rewrite_rule($config["pattern"], 'index.php?page_id='.$config["template"] , 'top');
-}
-
-function airpress_vp_add_rules(){
-	global $wp_rewrite;
-
-	$configs = get_airpress_configs("airpress_vp");
-
-	foreach($configs as $config){
-		if (isset($config["pattern"]) && !empty($config["pattern"])){
-			airpress_vp_add_rule($config);	
-		}
-
-		if ( isset($config["default"]) && ! empty($config["default"]) ){
-			$permalink = get_permalink($config["template"]);
-			$protocol = (empty($_SERVER["HTTPS"]))? "http" : "https";
-			$remove = $protocol."://".$_SERVER["HTTP_HOST"]."/";
-			$permalink = trim(str_replace($remove,"",$permalink),"/");
-			$pattern = "^".$permalink."/?";
-
-			add_rewrite_rule($pattern, "index.php?page_id=".$config["template"]."&default_vp=".rawurlencode($config["default"]) , 'top');
-			//die("Redirect: $pattern => ".$config["default"]);
-		}
-
-	}
-
 }
 
 function airpress_admin_vp_render_section__general() {

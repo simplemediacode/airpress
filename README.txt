@@ -3,8 +3,8 @@ Contributors: chetmac
 Donate link: https://www.paypal.me/chetmac
 Tags: airtable, custom, custom field, data management, repeater, spreadsheet, remote data, api
 Requires at least: 4.6
-Tested up to: 4.9.8
-Stable tag: 1.1.55
+Tested up to: 5.2.1
+Stable tag: 1.1.62
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,6 +63,22 @@ No. Airpress uses the same technique as WP Cron to refresh cached data in the ba
 7. Visit http://airtable.com/api to get your API Key and APP ID.
 
 == Changelog ==
+
+= 1.1.62 =
+* Gracefully get out of the way when a post is set to private and user is not logged in
+
+= 1.1.61 =
+* VirtualPost configurations better support Rollup/Lookup/Array fields for the post_name and post_title
+* Eliminate most PHP warnings when array index doesn't exist. 
+* Added "trim" argument to apr_loop shortcode. This allows {{ My Field }} in the loop instead of requiring {{My Field}}. If you need the whitespace to be respected, do [apr_loop trim="false"] . Remember, you can set a default value when using the apr shortcode. This can help identify issues with missing fields [apr_loop][apr field="My Field Name" default="My Field Name is not set"][apr_loop]
+
+= 1.1.60 =
+* Resolved issue that caused 404s on VirtualPosts. No thanks to irresponsible plugins and themes that call flush_rewrite_rules even when is_admin() == false.
+
+= 1.1.58 =
+* Compatibility Verification
+* Default value for apr_loop when empty: [apr_loop field='Vendors' default="I'm sorry dave. there are no records"] 
+* Made default filename for debug log random
 
 = 1.1.54 =
 * Added default value option: [apr field="Field Name" default="Sorry... no value found so you'll see this!"]
