@@ -516,7 +516,7 @@ class Airpress {
 		} else {
 			$deferred_queries = get_transient($stash_key);
 			delete_transient($stash_key);
-			airpress_debug(0,__FUNCTION__."|"."Processing ".count($deferred_queries)." queries");
+			airpress_debug(0,__FUNCTION__."|"."Processing ".count((array)$deferred_queries)." queries");
 			foreach($deferred_queries as $hash => $query){
 				$results = AirpressConnect::_get($query);
 				airpress_debug(0,__FUNCTION__."|"."Query ".$query->toString()." had ".count($results)." records returned. Que Bella!");
