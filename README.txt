@@ -4,7 +4,7 @@ Donate link: https://www.paypal.me/chetmac
 Tags: airtable, custom, custom field, data management, repeater, spreadsheet, remote data, api
 Requires at least: 4.6
 Tested up to: 5.2.1
-Stable tag: 1.1.62
+Stable tag: 1.1.62.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,6 +63,9 @@ No. Airpress uses the same technique as WP Cron to refresh cached data in the ba
 7. Visit http://airtable.com/api to get your API Key and APP ID.
 
 == Changelog ==
+
+= 1.1.62.1 =
+* fix: `count(): Argument #1 ($value) must be of type Countable|array, bool given`
 
 = 1.1.62 =
 * Gracefully get out of the way when a post is set to private and user is not logged in
