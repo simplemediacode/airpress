@@ -7,8 +7,8 @@ class Airpress {
 	public $debug_output;
 	private $loopScope;
 	public $debug_stats;
-
-	private $deferred_queries;
+	
+	public $deferredQueries;
 
 	function init(){
 
