@@ -68,6 +68,11 @@ function air_fs_custom_connect_message_on_update(
 
 air_fs()->add_filter('connect_message_on_update', 'air_fs_custom_connect_message_on_update', 10, 6);
 
+function airpress_get_posttypes_available()
+{
+	return get_post_types(['public' => true]);
+}
+
 require_once("lib/chetmac/Airpress.php");
 require_once("lib/chetmac/AirpressConnect.php");
 require_once("lib/chetmac/AirpressQuery.php");
