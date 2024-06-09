@@ -408,7 +408,7 @@ class Airpress {
    		// for all the unmet conditions.
 		if ( $condition ){
 
-			$values = array_filter($values, create_function('$value', 'return $value !== "";'));
+			$values = array_filter($values,	function ($value){return $value !== "";});
 			if ( empty($values)){
 				$values = null;
 			}
