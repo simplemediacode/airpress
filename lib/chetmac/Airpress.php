@@ -5,9 +5,9 @@ class Airpress {
 	private $virtualPosts;
 	private $virtualFields;
 	public $debug_output;
-	private $loopScope;
+	public $loopScope;
 	public $debug_stats;
-	
+
 	public $deferredQueries;
 
 	function init(){

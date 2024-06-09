@@ -145,8 +145,8 @@ function airpress_get_current_record(){
 
 	if ( is_airpress_collection($post->AirpressCollection) ){
 
-		if ( ! empty($airpress->loopscope) ){
-			return $airpress->loopscope[0];
+		if ( ! empty($airpress->loopScope) ){
+			return $airpress->loopScope[0];
 		} else {
 			return $post->AirpressCollection[0];
 		}
