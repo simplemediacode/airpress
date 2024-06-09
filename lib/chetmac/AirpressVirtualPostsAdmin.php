@@ -313,12 +313,16 @@ function airpress_admin_vp_render_element_toggle($args) {
 	echo '<label for="'.$field_name.'">&nbsp;'  . $field_name . '</label>'; 
 }
 
+function get_posttypes_available(){
+	return get_post_types(['public'=>true]);
+}
+
 function airpress_admin_vp_render_element_select__posttypes($args) {
 	$options = $args[0];
 	$option_name = $args[1];
 	$field_name = $args[2];
 
-	$post_types = airpress_get_posttypes_available();
+	$post_types = get_posttypes_available()??[];
 
 	echo '<select id="' . $field_name . '" name="' . $option_name . '[' . $field_name . '][]" multiple>';
 	foreach ( $post_types  as $post_type ) {
